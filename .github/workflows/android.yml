@@ -5,29 +5,30 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '*.zip'
+      - 'SS_GENERATOR_MVP_v2_source.zip'
       - '.github/workflows/android.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Extract Android project
+      - name: Extract MVP v2 project
         run: |
+          test -f SS_GENERATOR_MVP_v2_source.zip
           mkdir source
-          unzip -q "$(find . -maxdepth 1 -iname '*.zip' | head -1)" -d source
-          PROJECT_DIR=$(dirname "$(find source -name settings.gradle.kts | head -1)")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          unzip -q SS_GENERATOR_MVP_v2_source.zip -d source
+          PROJECT_DIR=$(find source -name settings.gradle.kts -print -quit | xargs dirname)
+          test -n "$PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -42,5 +43,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SS-GENERATOR-APK
+          name: SS-GENERATOR-MVP-v2-APK
           path: '**/app/build/outputs/apk/debug/*.apk'
+          if-no-files-found: error
+
